@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>람마고치 설치하기</title>
+<meta name="theme-color" content="#e45e93">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{--bg:#fdf2f6;--card:#fff;--ink:#3a2c40;--sub:#7a6a80;--pur:#e45e93;--line:#e4d8ea}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.55}
+main{max-width:520px;margin:0 auto;padding:28px 16px 40px;text-align:center}
+.logo{width:84px;height:84px;border-radius:22px;box-shadow:0 6px 18px rgba(120,70,140,.25)}
+h1{font-size:30px;margin:12px 0 4px;letter-spacing:-.5px}
+h1 b{color:var(--pur)}
+.lead{color:var(--sub);margin:0 0 20px}
+.qr{background:var(--card);border-radius:20px;padding:20px;display:inline-block;box-shadow:0 4px 16px rgba(120,70,140,.12)}
+.qr canvas{display:block;width:240px;height:240px;image-rendering:pixelated}
+.url{margin:12px auto 0;font-size:13px;color:var(--sub);word-break:break-all;max-width:320px}
+.row{display:flex;gap:8px;justify-content:center;margin:14px 0 26px;flex-wrap:wrap}
+button,a.btn{font:inherit;font-weight:600;border:0;border-radius:12px;padding:11px 16px;background:var(--pur);color:#fff;text-decoration:none;cursor:pointer}
+button.ghost{background:var(--card);color:var(--pur);border:1.5px solid var(--line)}
+.how{display:grid;gap:12px;text-align:left}
+.card{background:var(--card);border-radius:16px;padding:16px 18px;border:1px solid var(--line)}
+.card h2{font-size:16px;margin:0 0 6px}
+.card ol{margin:0;padding-left:20px}
+.card li{margin:3px 0}
+.note{font-size:13px;color:var(--sub);margin-top:20px}
+#installBtn{display:none}
+@media print{.row,.note{display:none}body{background:#fff}}
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="icon-192.png" alt="">
+  <h1><b>람</b>마고치</h1>
+  <p class="lead">휴대폰 카메라로 QR을 찍어서 들어가세요</p>
+  <div class="qr"><canvas id="qr" width="240" height="240"></canvas></div>
+  <div class="url" id="url"></div>
+  <div class="row">
+    <button id="installBtn">이 기기에 설치</button>
+    <a class="btn" id="play" href="./">바로 플레이</a>
+    <button class="ghost" id="copy">링크 복사</button>
+    <button class="ghost" id="save">QR 이미지 저장</button>
+  </div>
+  <div class="how">
+    <div class="card">
+      <h2>안드로이드</h2>
+      <ol>
+        <li>QR을 찍고 <b>크롬</b>으로 열어요</li>
+        <li>아래에 뜨는 <b>설치</b> 안내를 누르거나, ⋮ 메뉴 → <b>앱 설치</b></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h2>아이폰 · 아이패드</h2>
+      <ol>
+        <li>QR을 찍고 <b>사파리</b>로 열어요</li>
+        <li>아래 <b>공유 버튼</b>(네모에 위 화살표) → <b>홈 화면에 추가</b></li>
+      </ol>
+    </div>
+  </div>
+  <p class="note">설치하면 홈 화면 아이콘으로 앱처럼 켜지고, 한 번 연 뒤에는 인터넷 없이도 열려요.</p>
+</main>
+<script src="qrcode.js"></script>
+<script>
+const app=new URL('./',location.href).href;
+document.getElementById('url').textContent=app;
+const qr=qrcode(0,'M');qr.addData(app);qr.make();
+const n=qr.getModuleCount(),q=4,cv=document.getElementById('qr'),size=(n+q*2)*8;
+cv.width=cv.height=size;const g=cv.getContext('2d');
+g.fillStyle='#fff';g.fillRect(0,0,size,size);g.fillStyle='#3a2c40';
+for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(qr.isDark(r,c))g.fillRect((c+q)*8,(r+q)*8,8,8);
+document.getElementById('copy').onclick=async e=>{try{await navigator.clipboard.writeText(app);e.target.textContent='복사됐어요!'}catch(_){prompt('이 링크를 복사하세요',app)}};
+document.getElementById('save').onclick=()=>{const a=document.createElement('a');a.download='람마고치_QR.png';a.href=cv.toDataURL('image/png');a.click()};
+let dp;addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;document.getElementById('installBtn').style.display='inline-block'});
+document.getElementById('installBtn').onclick=async()=>{if(!dp)return;dp.prompt();await dp.userChoice;dp=null;document.getElementById('installBtn').style.display='none'};
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
